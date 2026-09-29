@@ -2,8 +2,8 @@
   "suite": "local fixture demonstration",
   "rest_contract_tests": 2,
   "event_stream_tests": 3,
-  "passed": 5,
+  "websocket_probe_integration_tests": 8,
+  "passed": 13,
   "failed": 0,
-  "notes": "Synthetic orders and events only; no production endpoint was contacted."
+  "notes": "Synthetic fixtures plus an ephemeral 127.0.0.1 WebSocket server; no external endpoint was contacted."
 }
-

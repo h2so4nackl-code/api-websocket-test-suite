@@ -24,7 +24,7 @@ pytest -q
 pytest --junitxml=reports/junit.xml
 ```
 
-The tests are deterministic and use files in `fixtures/`. They do not require network access.
+The tests are deterministic. Contract tests use files in `fixtures/`, while probe integration tests start an ephemeral WebSocket server on `127.0.0.1`. They do not contact an external service.
 
 ## Evidence
 
@@ -32,11 +32,12 @@ The tests are deterministic and use files in `fixtures/`. They do not require ne
 - [`fixtures/events.json`](fixtures/events.json) contains a valid fictional event lifecycle.
 - [`tests/test_rest_contract.py`](tests/test_rest_contract.py) checks positive and negative REST contracts.
 - [`tests/test_event_stream.py`](tests/test_event_stream.py) verifies message shape and stream order.
+- [`tests/test_ws_probe.py`](tests/test_ws_probe.py) exercises real loopback WebSocket connections, messages, malformed JSON, timeout, bounded reconnect, latency, invalid contracts, duplicate IDs, and ordering.
 - [`reports/sample-summary.json`](reports/sample-summary.json) shows a sanitized result summary.
 
 ## Reusable probe
 
-`api_ws_suite.ws_probe.probe()` connects to a supplied WebSocket URI, waits for one message, measures elapsed time, validates JSON and the event contract, and retries bounded transient failures. It is intentionally not pointed at a public service by default.
+`api_ws_suite.ws_probe.probe()` connects to a supplied WebSocket URI, waits for one or more messages, measures elapsed time, validates JSON, event contracts, duplicate IDs, and sequence order, and retries bounded transient failures. It is intentionally not pointed at a public service by default.
 
 ## Project structure
 
@@ -50,7 +51,7 @@ reports/            sanitized sample result
 ## Limitations
 
 - This is an educational portfolio suite, not a load-testing tool.
-- Reconnect tests are represented by bounded probe attempts; production-grade backoff and jitter are out of scope.
+- Reconnect behavior is verified against a deterministic loopback server; production-grade backoff and jitter are out of scope.
 - The order/event domain is fictional and does not reproduce a private platform protocol.
 
 ## Suggested GitHub description

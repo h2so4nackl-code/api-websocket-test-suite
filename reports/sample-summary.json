@@ -1,0 +1,9 @@
+{
+  "suite": "local fixture demonstration",
+  "rest_contract_tests": 2,
+  "event_stream_tests": 3,
+  "passed": 5,
+  "failed": 0,
+  "notes": "Synthetic orders and events only; no production endpoint was contacted."
+}
+

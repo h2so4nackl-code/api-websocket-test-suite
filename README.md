@@ -17,8 +17,11 @@ No live trading account, private endpoint, wallet, production credential, or pro
 
 ## Run locally
 
+Create and activate the virtual environment before installing dependencies. On Windows PowerShell, use `.\.venv\Scripts\Activate.ps1` instead of `source .venv/bin/activate`.
+
 ```bash
 python -m venv .venv
+source .venv/bin/activate
 python -m pip install -e ".[dev]"
 pytest -q
 pytest --junitxml=reports/junit.xml

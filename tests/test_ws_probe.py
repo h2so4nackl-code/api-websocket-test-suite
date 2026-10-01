@@ -2,7 +2,9 @@ import asyncio
 import json
 import socket
 
+import pytest
 from websockets.asyncio.server import serve
+from websockets.exceptions import ConnectionClosed
 
 from api_ws_suite.ws_probe import probe
 
@@ -61,6 +63,52 @@ def test_receive_timeout_is_bounded_and_reported():
         assert result["errors"] == ["attempt 1: TimeoutError"]
 
     asyncio.run(run_server(handler, assertion, attempts=1, timeout_seconds=0.03))
+
+
+def test_timeout_budget_is_shared_across_messages():
+    async def handler(websocket):
+        await asyncio.sleep(0.08)
+        await websocket.send(json.dumps(event()))
+        await asyncio.sleep(0.08)
+        try:
+            await websocket.send(json.dumps(event("evt-2", 2)))
+        except ConnectionClosed:
+            # The probe may close the connection when its total budget expires.
+            pass
+
+    def assertion(result):
+        assert result["passed"] is False
+        assert result["errors"] == ["attempt 1: TimeoutError"]
+
+    asyncio.run(
+        run_server(
+            handler, assertion, attempts=1, timeout_seconds=0.12,
+            expected_messages=2,
+        )
+    )
+
+
+def test_cancelling_probe_propagates_without_retry():
+    async def run():
+        connected = asyncio.Event()
+        connections = 0
+
+        async def handler(websocket):
+            nonlocal connections
+            connections += 1
+            connected.set()
+            await websocket.wait_closed()
+
+        async with serve(handler, "127.0.0.1", 0) as server:
+            port = server.sockets[0].getsockname()[1]
+            task = asyncio.create_task(probe(f"ws://127.0.0.1:{port}", attempts=2))
+            await asyncio.wait_for(connected.wait(), timeout=1.0)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            assert connections == 1
+
+    asyncio.run(run())
 
 
 def test_transient_failure_reconnects_within_bounded_attempts():

@@ -1,5 +1,7 @@
 # API & WebSocket Test Suite
 
+[![Tests](https://github.com/h2so4nackl-code/api-websocket-test-suite/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/h2so4nackl-code/api-websocket-test-suite/actions/workflows/tests.yml)
+
 A personal QA portfolio project demonstrating REST contract checks and WebSocket event-stream validation with synthetic local fixtures. It covers connectivity logic, retry behavior, malformed messages, event ordering, duplicate detection, latency evidence, and automated test reports.
 
 No live trading account, private endpoint, wallet, production credential, or proprietary event is used.

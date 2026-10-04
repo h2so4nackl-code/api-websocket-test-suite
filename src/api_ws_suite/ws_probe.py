@@ -22,13 +22,17 @@ async def probe(
     if expected_messages < 1:
         raise ValueError("expected_messages must be at least 1")
 
+    async def receive_messages():
+        async with websockets.connect(uri) as socket:
+            return [await socket.recv() for _ in range(expected_messages)]
+
     failures: list[str] = []
     for attempt in range(1, attempts + 1):
         started = time.perf_counter()
         try:
-            async with asyncio.timeout(timeout_seconds):
-                async with websockets.connect(uri) as socket:
-                    raw_messages = [await socket.recv() for _ in range(expected_messages)]
+            raw_messages = await asyncio.wait_for(
+                receive_messages(), timeout=timeout_seconds
+            )
             latency_ms = round((time.perf_counter() - started) * 1_000, 2)
             events: list[Any] = []
             for message_index, raw in enumerate(raw_messages):
@@ -58,7 +62,7 @@ async def probe(
                 "latency_ms": latency_ms,
                 "errors": errors,
             }
-        except (OSError, TimeoutError, websockets.WebSocketException) as exc:
+        except (OSError, asyncio.TimeoutError, websockets.WebSocketException) as exc:
             failures.append(f"attempt {attempt}: {exc.__class__.__name__}")
     return {
         "passed": False,
